@@ -874,13 +874,19 @@ static int vidioc_querycap(struct file *file, void *priv,
 	struct bcm2835_mmal_dev *dev = video_drvdata(file);
 	u32 major;
 	u32 minor;
+	int n, rem;
 
 	vchiq_mmal_version(dev->instance, &major, &minor);
 
 	strscpy(cap->driver, "bcm2835 mmal", sizeof(cap->driver));
 	snprintf((char *)cap->card, sizeof(cap->card), "mmal service %d.%d", major, minor);
 
-	snprintf((char *)cap->bus_info, sizeof(cap->bus_info), "platform:%s", dev->v4l2_dev.name);
+	n = scnprintf((char *)cap->bus_info, sizeof(cap->bus_info), "platform:");
+	rem = (int)sizeof(cap->bus_info) - n - 1;
+	if (rem < 0)
+		rem = 0;
+	scnprintf((char *)cap->bus_info + n, sizeof(cap->bus_info) - n,
+		  "%.*s", rem, dev->v4l2_dev.name);
 	return 0;
 }
 
